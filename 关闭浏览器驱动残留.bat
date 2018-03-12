@@ -1,1 +1,0 @@
-taskkill /im geckodriver.exe /f
