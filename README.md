@@ -26,5 +26,5 @@
 * [Apache-2.0](https://github.com/petronny/unofficial-taobao-api/blob/master/LICENSE)
 
 # Acknowledgement
-* [localhost02/Taobao_order_robo](https://github.com/localhost02/Taobao_order_robot)
+* [localhost02/Taobao_order_robot](https://github.com/localhost02/Taobao_order_robot)
 * [lilydjwg/winterpy](https://github.com/lilydjwg/winterpy)
