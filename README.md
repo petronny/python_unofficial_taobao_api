@@ -27,3 +27,4 @@
 
 # Acknowledgement
 * [localhost02/Taobao_order_robo](https://github.com/localhost02/Taobao_order_robot)
+* [lilydjwg/winterpy](https://github.com/lilydjwg/winterpy)
