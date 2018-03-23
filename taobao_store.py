@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 from selenium.common import exceptions
 from selenium import webdriver
 from selenium.webdriver import ActionChains
-from config import delay_wait
 
 logger = logging.getLogger()
 
@@ -25,7 +24,7 @@ class TaobaoOrder:
     def __getitem__(self, key):
         return self.__data__[key]
 
-    def __repr(self):
+    def __repr__(self):
         return __str__(self)
 
     def __str__(self):
@@ -61,7 +60,6 @@ class TaobaoOrder:
         #print(self.__driver__.page_source)
 
 class TaobaoStore:
-
     __login_url__ = "https://login.taobao.com/member/login.jhtml"
     __orders_url__ = "https://trade.taobao.com/trade/itemlist/list_sold_items.htm?action=itemlist/SoldQueryAction&event_submit_do_query=1&auctionStatus=PAID&tabCode=waitSend"
     # 卖家正出售宝贝URL
@@ -74,7 +72,7 @@ class TaobaoStore:
     __message_url__ = "https://trade.taobao.com/trade/json/getMessage.htm?archive=false&biz_order_id="
     __address_url__ = "https://trade.taobao.com/trade/detail/trade_order_detail.htm?biz_order_id="
 
-    def __init__(self, username, password, login_method='taobao'):
+    def __init__(self, username, password, login_method='taobao', delay_wait=15):
         self.__session__ = requests.Session()
         self.__username__ = username
         self.__password__ = password

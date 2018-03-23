@@ -15,14 +15,14 @@ from taobao_store import TaobaoStore
 from config import *
 from selenium.common.exceptions import TimeoutException
 
-check_order_period = 15
-check_refunding_period = 0
+check_order_period = 60
+check_refunding_period = 3600
 
 if __name__ == '__main__':
 
     # 1.初始化需要的对象
     logger.info('Logging into Taobao store system')
-    store = TaobaoStore(taobao_username, taobao_password)
+    store = TaobaoStore(taobao_username, taobao_password, 'weibo')
     logger.info('Logged into Taobao store system')
     #downloader = CsdnDownloader(csdn_username, csdn_password)
     #sender = MailSender(mail_username, mail_authorization_code)
