@@ -22,6 +22,22 @@
 * firefox
 * geckodriver
 
+# Installation
+Just clone this repository
+```sh
+$ git clone https://github.com/petronny/python_unofficial_taobao_api
+```
+
+# Usage
+```python
+from taobao_store import TaobaoStore
+
+store = TaobaoStore("username", "password", login_method='weibo')
+orders = store.get_new_orders()
+for order in orders:
+    print(order)
+```
+
 # License
 * [Apache-2.0](https://github.com/petronny/unofficial-taobao-api/blob/master/LICENSE)
 
