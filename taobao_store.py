@@ -61,16 +61,15 @@ class TaobaoOrder:
 
 class TaobaoStore:
     __login_url__ = "https://login.taobao.com/member/login.jhtml"
-    __orders_url__ = "https://trade.taobao.com/trade/itemlist/list_sold_items.htm?action=itemlist/SoldQueryAction&event_submit_do_query=1&auctionStatus=PAID&tabCode=waitSend"
+    __undelivered_orders_url__ = "https://trade.taobao.com/trade/itemlist/list_sold_items.htm?action=itemlist/SoldQueryAction&event_submit_do_query=1&auctionStatus=PAID&tabCode=waitSend"
+    __refunding_orders_url__ = "https://trade.taobao.com/trade/itemlist/list_sold_items.htm?action=itemlist/SoldQueryAction&event_submit_do_query=1&auctionStatus=REFUNDING&tabCode=refunding"
     # 卖家正出售宝贝URL
     __auction_url__ = "https://sell.taobao.com/auction/merchandise/auction_list.htm"
     # 卖家仓库中宝贝URL
     __repository_url__ = "https://sell.taobao.com/auction/merchandise/auction_list.htm?type=1"
-    # 卖家退款URL
-    __refunding_url__ = "https://trade.taobao.com/trade/itemlist/list_sold_items.htm?action=itemlist/SoldQueryAction&event_submit_do_query=1&auctionStatus=REFUNDING&tabCode=refunding"
     # 请求留言URL
     __message_url__ = "https://trade.taobao.com/trade/json/getMessage.htm?archive=false&biz_order_id="
-    __address_url__ = "https://trade.taobao.com/trade/detail/trade_order_detail.htm?biz_order_id="
+    __order_detail_url__ = "https://trade.taobao.com/trade/detail/trade_order_detail.htm?biz_order_id="
 
     def __init__(self, username, password, login_method='taobao', delay_wait=15):
         self.__session__ = requests.Session()
@@ -168,12 +167,35 @@ class TaobaoStore:
         while 'weibo' in self.__driver__.current_url:
             time.sleep(1)
 
-    def __save_cookies__(self):
-        # self.__driver__.switch_to_default_content() #需要返回主页面，不然获取的cookies不是登陆后cookies
-        list_cookies = self.__driver__.get_cookies()
-        self.cookies = {}
-        for s in list_cookies:
-            self.cookies[s['name']] = s['value']
+    def get_undelivered_orders(self):
+        self.__driver__.get(self.__undelivered_orders_url__)
+        time.sleep(2)
+        return self.__get_orders()
+
+    def get_refunding_orders(self):
+        self.__driver__.get(self.__refunding_orders_url__)
+        time.sleep(2)
+        return self.__get_orders()
+
+    def __get_orders(self):
+        result = []
+        while True:
+            time.sleep(2)  # 两秒等待页面加载
+            # 2.获取当前页面的订单信息
+            result += self.__get_orders_per_page()
+            try:
+                # 3.获取下一页按钮
+                next_page_li = self.__driver__.find_element_by_class_name("pagination-next")
+                # 4.判断按钮是否可点击，否则退出循环
+                next_page_li.get_attribute("class").index("pagination-disabled")
+                break
+            except ValueError:
+                print(next_page_li.find_element_by_tag_name("a").text)
+                next_page_li.click()
+                time.sleep(1)
+            except exceptions.NoSuchElementException:
+                pass
+        return result
 
     def __get_orders_per_page(self):
         # 1.bs4将资源转html
@@ -210,66 +232,34 @@ class TaobaoStore:
             data_array.append(TaobaoOrder(order, self.__driver__))
         return data_array
 
-    def __get_orders(self):
-        result = []
-        # 1.进入待发货订单页面
-        while True:
-            # 2.获取当前页面的订单信息
-            time.sleep(2)  # 两秒等待页面加载
-            _orders = self.__get_orders_per_page()
-            result.extend(_orders)
-            try:
-                # 3.获取下一页按钮
-                next_page_li = self.__driver__.find_element_by_class_name("pagination-next")
-                # 4.判断按钮是否可点击，否则退出循环
-                next_page_li.get_attribute("class").index("pagination-disabled")
-                # print_msg("到达最后一页")
-                break
-            except ValueError:
-                # print_msg("跳转到下一页")
-                print(next_page_li.find_element_by_tag_name("a").text)
-                next_page_li.click()
-                time.sleep(1)
-            except exceptions.NoSuchElementException:
-                pass
-        return result
+    def __save_cookies__(self):
+        # self.__driver__.switch_to_default_content() #需要返回主页面，不然获取的cookies不是登陆后cookies
+        list_cookies = self.__driver__.get_cookies()
+        self.cookies = {}
+        for s in list_cookies:
+            self.cookies[s['name']] = s['value']
 
-    def get_new_orders(self):
-        self.__driver__.get(self.__orders_url__)
-        time.sleep(2)
-        return self.__get_orders()
+    #def unshelve(self):
+    #    try:
+    #        # 1.进入正出售宝贝页面
+    #        self.__driver__.get(self.__auction_url__)
+    #        # 2.点击下架
+    #        choose_checkbox = self.__driver__.find_element_by_xpath("//*[@id='J_DataTable']/table/tbody[1]/tr[1]/td/input[1]")
+    #        choose_checkbox.click()
+    #        unshelve_btn = self.__driver__.find_element_by_xpath("//*[@id='J_DataTable']/div[2]/table/thead/tr[2]/td/div/button[2]")
+    #        unshelve_btn.click()
+    #        return True
+    #    except:
+    #        return False
 
-    def unshelve(self):
-        try:
-            # 1.进入正出售宝贝页面
-            self.__driver__.get(self.__auction_url__)
-            # 2.点击下架
-            choose_checkbox = self.__driver__.find_element_by_xpath("//*[@id='J_DataTable']/table/tbody[1]/tr[1]/td/input[1]")
-            choose_checkbox.click()
-            unshelve_btn = self.__driver__.find_element_by_xpath("//*[@id='J_DataTable']/div[2]/table/thead/tr[2]/td/div/button[2]")
-            unshelve_btn.click()
-            return True
-        except:
-            return False
-
-    def shelve(self):
-        # 1.进入仓库宝贝页面
-        self.__driver__.get(self.__repository_url__)
-        # 2.点击上架
-        try:
-            choose_checkbox = self.__driver__.find_element_by_xpath("//*[@id='J_DataTable']/table/tbody[1]/tr[1]/td/input")
-            choose_checkbox.click()
-            shelve_btn = self.__driver__.find_element_by_xpath("//*[@id='J_DataTable']/div[3]/table/tbody/tr/td/div/button[2]")
-            shelve_btn.click()
-        except exceptions.NoSuchElementException:
-            pass
-
-    def get_refunding_orders(self):
-        self.__driver__.get(self.__refunding_url__)
-        return self.__get_orders()
-
-if __name__ == '__main__':
-    store = TaobaoStore("username", "password", login_method='weibo')
-    orders = store.get_new_orders()
-    for order in orders:
-        print(order)
+    #def shelve(self):
+    #    # 1.进入仓库宝贝页面
+    #    self.__driver__.get(self.__repository_url__)
+    #    # 2.点击上架
+    #    try:
+    #        choose_checkbox = self.__driver__.find_element_by_xpath("//*[@id='J_DataTable']/table/tbody[1]/tr[1]/td/input")
+    #        choose_checkbox.click()
+    #        shelve_btn = self.__driver__.find_element_by_xpath("//*[@id='J_DataTable']/div[3]/table/tbody/tr/td/div/button[2]")
+    #        shelve_btn.click()
+    #    except exceptions.NoSuchElementException:
+    #        pass
